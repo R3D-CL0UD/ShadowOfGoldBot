@@ -33,13 +33,43 @@ public class SceneRepository : ISceneRepository
             .ToListAsync();
 
         var playerFlags = player.Flags.Select(f => f.FlagName).ToHashSet();
+        var state = player.State;
 
         return choices.Where(c =>
         {
-            if (string.IsNullOrEmpty(c.RequiredFlag))
-                return true;
+            // شرط فلگ
+            if (!string.IsNullOrEmpty(c.RequiredFlag) && !playerFlags.Contains(c.RequiredFlag))
+                return false;
 
-            return playerFlags.Contains(c.RequiredFlag);
+            // شرط آیتم
+            if (!string.IsNullOrEmpty(c.RequiredItem) && state is not null)
+            {
+                var hasItem = c.RequiredItem switch
+                {
+                    "Gold" => state.HasGold,
+                    "Rifle" => state.HasRifle,
+                    "Ammo" => state.HasAmmo,
+                    _ => false
+                };
+                if (!hasItem) return false;
+            }
+
+            // شرط مهارت
+            if (!string.IsNullOrEmpty(c.RequiredSkill) && state is not null)
+            {
+                var skillLevel = c.RequiredSkill switch
+                {
+                    "Perception" => state.SkillPerception,
+                    "Persuasion" => state.SkillPersuasion,
+                    "Intimidation" => state.SkillIntimidation,
+                    "Empathy" => state.SkillEmpathy,
+                    "Combat" => state.SkillCombat,
+                    _ => 0
+                };
+                if (skillLevel < c.RequiredSkillLevel) return false;
+            }
+
+            return true;
         }).ToList();
     }
 

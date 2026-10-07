@@ -13,23 +13,28 @@ public static class DataSeeder
         var scene1 = new Scene
         {
             Id = 1,
-            Title = "Scene 1: A Normal Morning",
-            Description = @"Canyon Creek, 1887.
+            Title = "صحنه ۱: صبحی معمولی",
+            Description = @"کانیون کریک، ۱۸۸۷.
 
-The sun bleeds orange over the rocky ridge to the east. Dust hangs in the air, golden and slow. You unlock the door of your general store.
+خورشید نارنجی روی خط‌الرأس سنگی شرق می‌چکد. غبار در هوا می‌رقصد، طلایی و آرام. درِ مغازه‌ی عمومی‌ات را باز می‌کنی.
 
-Through the window, you watch the town wake. A farmer loads hay onto a wagon. A preacher rings the church bell.
+از پنجره، تماشا می‌کنی که شهر بیدار می‌شود. کشاورزی بار روی واگن می‌گذارد. کشیشی ناقوس کلیسا را به صدا درمی‌آورد. بچه‌ها پابرهنه به سمت مکتب می‌دوند.
 
-The door creaks open. A young boy enters. His clothes are torn. He stares at the chocolate on the counter. His hands are shaking.",
+در با صدای جیرجیر باز می‌شود. پسر بچه‌ای وارد می‌شود.
+
+لباسش پاره است. پاهایش خاکی. حرفی نمی‌زند. به شکلات روی پیشخوان خیره می‌شود.
+
+دست‌هایش می‌لرزد.",
             IsEnding = false
         };
         scene1.Choices = new List<Choice>
         {
-            new() { Text = "Give him a chocolate for free", NextSceneId = 2, FlagToSet = "HelpedBoy", ReputationTownChange = 1 },
-            new() { Text = "Tell him to bring money next time", NextSceneId = 2, FlagToSet = "RefusedBoy", ReputationTownChange = -1 },
-            new() { Text = "Give him half a chocolate", NextSceneId = 2, FlagToSet = "HalfHelpedBoy" },
-            new() { Text = "Ignore him", NextSceneId = 2, FlagToSet = "IgnoredBoy", ReputationTownChange = -1 },
-            new() { Text = "Ask him where his parents are", NextSceneId = 2, FlagToSet = "AskedAboutBoy" }
+            new() { Text = "یک شکلات مجانی به او بده", NextSceneId = 2, FlagToSet = "HelpedBoy", ReputationTownChange = 1, KarmaMercyChange = 1 },
+            new() { Text = "بگو دفعه بعد پول بیاورد", NextSceneId = 2, FlagToSet = "RefusedBoy", ReputationTownChange = -1, KarmaGreedChange = 1 },
+            new() { Text = "نصف شکلات را به او بده", NextSceneId = 2, FlagToSet = "HalfHelpedBoy", KarmaMercyChange = 1 },
+            new() { Text = "نادیده بگیر و به چیدن قفسه‌ها ادامه بده", NextSceneId = 2, FlagToSet = "IgnoredBoy", ReputationTownChange = -1, KarmaMercyChange = -1 },
+            new() { Text = "بپرس پدر و مادرش کجا هستند", NextSceneId = 2, FlagToSet = "AskedAboutBoy", SkillPerceptionChange = 1 },
+            new() { Text = "👁 [ادراک ۳+] نگاه دقیق‌تری به دست‌های پسر بنداز — چیزی توشون هست", NextSceneId = 2, FlagToSet = "NoticedBoyHands", SkillPerceptionChange = 1, RequiredSkill = "Perception", RequiredSkillLevel = 3 }
         };
         db.Scenes.Add(scene1);
 
@@ -37,23 +42,23 @@ The door creaks open. A young boy enters. His clothes are torn. He stares at the
         var scene2 = new Scene
         {
             Id = 2,
-            Title = "Scene 2: The Old Woman",
-            Description = @"The boy leaves. The bell above the door rings. Mrs. Hartley enters.
+            Title = "صحنه ۲: پیرزن",
+            Description = @"پسر می‌رود. ناقوس بالای در به صدا درمی‌آید. خانم هارتلی وارد می‌شود.
 
-She is seventy if she is a day. Her eyes are sharp as a hawk's.
+اگر یک روز هم عمر داشته باشد، هفتاد ساله است. پشتش خمیده، ولی چشم‌هایش مثل شاهین تیز است.
 
-""I need two yards of that blue cloth. And don't you dare charge me full price, Elias.""
+""دو متر از آن پارچه‌ی آبی را می‌خواهم. و جرأت نکن قیمت کامل بگیری، جان.""
 
-She leans on the counter. Her knuckles are white.",
+روی پیشخوان خم می‌شود. بند انگشتانش سفید شده‌اند.",
             IsEnding = false
         };
         scene2.Choices = new List<Choice>
         {
-            new() { Text = "Give her the cloth at full price", NextSceneId = 3, FlagToSet = "FullPriceHartley", ReputationTownChange = -1 },
-            new() { Text = "Give her a small discount", NextSceneId = 3, FlagToSet = "DiscountedHartley", ReputationTownChange = 1 },
-            new() { Text = "Refuse to lower the price", NextSceneId = 3, FlagToSet = "StubbornHartley", ReputationTownChange = -1 },
-            new() { Text = "Ask her about the rumors in town", NextSceneId = 3, FlagToSet = "AskedRumors" },
-            new() { Text = "Tell her about the boy", NextSceneId = 3, FlagToSet = "MentionedBoy" }
+            new() { Text = "پارچه را به قیمت کامل بده", NextSceneId = 3, FlagToSet = "FullPriceHartley", ReputationTownChange = -1, TrustHartleyChange = -1, KarmaGreedChange = 1 },
+            new() { Text = "کمی تخفیف بده", NextSceneId = 3, FlagToSet = "DiscountedHartley", ReputationTownChange = 1, TrustHartleyChange = 1, KarmaHonorChange = 1 },
+            new() { Text = "قیمت را پایین نیاور و محکم بمان", NextSceneId = 3, FlagToSet = "StubbornHartley", ReputationTownChange = -1, TrustHartleyChange = -1, SkillIntimidationChange = 1 },
+            new() { Text = "از او درباره‌ی شایعات شهر بپرس", NextSceneId = 3, FlagToSet = "AskedRumors", SkillPerceptionChange = 1, TrustHartleyChange = 1 },
+            new() { Text = "از پسر بچه برایش بگو و بپرس می‌شناسدش", NextSceneId = 3, FlagToSet = "MentionedBoy", TrustHartleyChange = 1, KarmaMercyChange = 1 }
         };
         db.Scenes.Add(scene2);
 
@@ -61,23 +66,26 @@ She leans on the counter. Her knuckles are white.",
         var scene3 = new Scene
         {
             Id = 3,
-            Title = "Scene 3: The Farmer",
-            Description = @"Mrs. Hartley leaves. A farmer named Thomas enters.
+            Title = "صحنه ۳: کشاورز",
+            Description = @"خانم هارتلی می‌رود، زیر لب چیزی می‌گوید.
 
-He grows corn on the eastern edge of town. His hands are always rough. Today, his hands are shaking.
+در دوباره باز می‌شود. کشاورزی به نام تام وارد می‌شود. سال‌هاست می‌شناسی‌اش. توی لبه‌ی شرقی شهر ذرت می‌کارد.
 
-""Give me all the ammunition you have. And... do you have a rifle for sale? A good one.""
+امروز، دست‌هایش می‌لرزند.
 
-Outside, the sun climbs higher. But Thomas is still shivering.",
+""تمام فشنگ‌هایی که داری رو بده. و... یه تفنگ برای فروش داری؟ یه تفنگ خوب.""
+
+صدایش زیادی آرام است. زیادی کنترل‌شده.",
             IsEnding = false
         };
         scene3.Choices = new List<Choice>
         {
-            new() { Text = "Sell him everything he asks for", NextSceneId = 4, FlagToSet = "SoldAmmoToThomas", ReputationTownChange = 1 },
-            new() { Text = "Ask him what's wrong", NextSceneId = 4, FlagToSet = "AskedThomas" },
-            new() { Text = "Refuse to sell and ask him to calm down", NextSceneId = 4, FlagToSet = "RefusedThomas", ReputationTownChange = -1 },
-            new() { Text = "Sell the ammo but keep the rifle for yourself", NextSceneId = 4, FlagToSet = "KeptRifle" },
-            new() { Text = "Tell him you'll sell only if he tells the truth", NextSceneId = 4, FlagToSet = "ThomasToldTruth", ReputationTownChange = 1 }
+            new() { Text = "هر چیزی که خواست به او بفروش", NextSceneId = 4, FlagToSet = "SoldAmmoToThomas", ReputationTownChange = 1, TrustTomChange = 2 },
+            new() { Text = "بپرس چه مشکلی دارد", NextSceneId = 4, FlagToSet = "AskedThomas", TrustTomChange = 2, SkillEmpathyChange = 1 },
+            new() { Text = "از فروش امتناع کن و بگو آرام شود", NextSceneId = 4, FlagToSet = "RefusedThomas", ReputationTownChange = -1, TrustTomChange = -1, KarmaMercyChange = 1 },
+            new() { Text = "فشنگ‌ها را بفروش ولی تفنگ را برای خودت نگه دار", NextSceneId = 4, FlagToSet = "KeptRifle", TrustTomChange = 1, KarmaGreedChange = 1 },
+            new() { Text = "بگو فقط اگر حقیقت را بگوید می‌فروشی", NextSceneId = 4, FlagToSet = "ThomasToldTruth", TrustTomChange = 3, SkillPersuasionChange = 1 },
+            new() { Text = "🗣 [متقاعدسازی ۴+] آرامش کن و بگو چی توی ذهنشه رو بگه", NextSceneId = 4, FlagToSet = "ThomasOpenedUp", TrustTomChange = 3, SkillEmpathyChange = 1, RequiredSkill = "Persuasion", RequiredSkillLevel = 4 }
         };
         db.Scenes.Add(scene3);
 
@@ -85,25 +93,30 @@ Outside, the sun climbs higher. But Thomas is still shivering.",
         var scene4 = new Scene
         {
             Id = 4,
-            Title = "Scene 4: A Stranger at Dusk",
-            Description = @"The sun is setting. The sky is a wound — red and gold and purple.
+            Title = "صحنه ۴: غریبه‌ای در غروب",
+            Description = @"خورشید در حال غروب است. آسمان یک زخم است — سرخ و طلایی و بنفش.
 
-You're about to close the store. Then the door bursts open.
+می‌خواهی مغازه را ببندی. دستت روی دستگیره است.
 
-A wounded man stumbles inside. He is pale. His shirt is soaked with blood. He clutches a heavy leather bag against his chest.
+ناگهان در با ضربه باز می‌شود.
 
-""Please... lock the door. I need... I need to leave something here.""
+مردی زخمی داخل می‌افتد. رنگ‌پریده. پیراهنش خیس خون است، تیره و تازه. نفس‌نفس می‌زند.
 
-Outside, in the distance, you hear the sound of horses. They are coming.",
+یک کیسه‌ی چرمی سنگین را به سینه‌اش فشار می‌دهد.
+
+""لطفاً... در رو قفل کن. باید... باید یه چیزی اینجا بذارم.""
+
+بیرون، صدای سم اسب‌ها را می‌شنوی. آن‌ها می‌آیند.",
             IsEnding = false
         };
         scene4.Choices = new List<Choice>
         {
-            new() { Text = "Lock the door and help him", NextSceneId = 5, FlagToSet = "HelpedCole", TrustMayChange = 1 },
-            new() { Text = "Tell him to leave. You don't want trouble.", NextSceneId = 5, FlagToSet = "RefusedCole", TrustMayChange = -1 },
-            new() { Text = "Draw your weapon and demand his name", NextSceneId = 5, FlagToSet = "ThreatenedCole", TrustMayChange = -1 },
-            new() { Text = "Let him stay but keep your distance", NextSceneId = 5, FlagToSet = "CautiousCole" },
-            new() { Text = "Step outside and look for the riders", NextSceneId = 5, FlagToSet = "LookedOutside" }
+            new() { Text = "در را قفل کن و کمکش کن", NextSceneId = 5, FlagToSet = "HelpedCole", TrustColeChange = 2, KarmaMercyChange = 1 },
+            new() { Text = "بگو برود. دردسر نمی‌خواهی.", NextSceneId = 5, FlagToSet = "RefusedCole", TrustColeChange = -3, KarmaMercyChange = -1 },
+            new() { Text = "سلاحت را بکش و اسمش را بپرس", NextSceneId = 5, FlagToSet = "ThreatenedCole", TrustColeChange = -2, SkillIntimidationChange = 1, KarmaHonorChange = -1 },
+            new() { Text = "بگذار بماند ولی فاصله‌ات را حفظ کن", NextSceneId = 5, FlagToSet = "CautiousCole", TrustColeChange = -1, SkillPerceptionChange = 1 },
+            new() { Text = "برو بیرون و سوارکارها را ببین", NextSceneId = 5, FlagToSet = "LookedOutside", SkillPerceptionChange = 2 },
+            new() { Text = "👁 [ادراک ۴+] از پنجره‌ی پشتی ببین چند نفر دارن میان", NextSceneId = 5, FlagToSet = "CountedRiders", SkillPerceptionChange = 2, RequiredSkill = "Perception", RequiredSkillLevel = 4 }
         };
         db.Scenes.Add(scene4);
 
@@ -111,29 +124,36 @@ Outside, in the distance, you hear the sound of horses. They are coming.",
         var scene5 = new Scene
         {
             Id = 5,
-            Title = "Scene 5: The Confession",
-            Description = @"The man collapses onto a chair. He drinks water. Then he speaks.
+            Title = "صحنه ۵: اعتراف",
+            Description = @"در را قفل می‌کنی. قفل با صدای سنگینی جا می‌افتد.
 
-""My name is Cole. I ran from a gang. This bag... it has gold. Twenty kilograms. I stole it from them.""
+مرد روی صندلی می‌افتد. کیسه را رها می‌کند. با صدای سنگینی روی زمین می‌افتد — سنگین‌تر از آنکه خالی باشد.
 
-He pushes the bag toward you.
+""اسم من ری‌یه. از یه دار و دسته فرار کردم. این کیسه... توش طلاست. بیست کیلو.""
 
-""You... keep it. If I live, I'll come back. If not... it's yours.""
+به تو نگاه می‌کند. چشم‌هایش به رنگ سنگ خیس است.
 
-He stumbles to the back door.
+""ازشون دزدیدم. دارن میان دنبالم. نمی‌تونم حملش کنم. نمی‌تونم دیگه فرار کنم.""
 
-""Don't trust anyone in this town. Not even the Sheriff.""
+کیسه را با پایش به سمت تو هل می‌دهد.
 
-He disappears into the dark. The bag is still on the floor. It's waiting.",
+""تو... نگهش دار. اگه زنده موندم، برمی‌گردم. اگه نه... مال خودته.""
+
+بلند می‌شود. به سمت درِ پشتی می‌رود.
+
+""به هیچ‌کس توی این شهر اعتماد نکن. حتی به کلانتر.""
+
+در تاریکی ناپدید می‌شود. کیسه هنوز روی زمین است.",
             IsEnding = false
         };
         scene5.Choices = new List<Choice>
         {
-            new() { Text = "Open the bag. See the gold. Decide to keep it.", NextSceneId = 6, FlagToSet = "HasGold", KarmaGreedChange = 1, ReputationGangChange = -1 },
-            new() { Text = "Take the bag to the Sheriff immediately", NextSceneId = 6, FlagToSet = "GaveToSheriff", ReputationSheriffChange = 2, ReputationGangChange = 1 },
-            new() { Text = "Hide the bag in your storage room", NextSceneId = 6, FlagToSet = "HiddenGold" },
-            new() { Text = "Follow Cole outside to see where he goes", NextSceneId = 6, FlagToSet = "FollowedCole" },
-            new() { Text = "Leave the bag where it is and go home", NextSceneId = 6, FlagToSet = "IgnoredGold", KarmaGreedChange = -1 }
+            new() { Text = "کیسه را باز کن. طلا را ببین. تصمیم بگیر نگهش داری.", NextSceneId = 6, FlagToSet = "HasGold", KarmaGreedChange = 2, ReputationGangChange = -1 },
+            new() { Text = "همین حالا کیسه را به کلانتر ببر", NextSceneId = 6, FlagToSet = "GaveToSheriff", ReputationSheriffChange = 2, TrustSheriffChange = 2, KarmaHonorChange = 2, ReputationGangChange = 1 },
+            new() { Text = "کیسه را در انبار پنهان کن", NextSceneId = 6, FlagToSet = "HiddenGold", KarmaGreedChange = 1, SkillPerceptionChange = 1 },
+            new() { Text = "ری را دنبال کن و ببین کجا می‌رود", NextSceneId = 6, FlagToSet = "FollowedCole", TrustColeChange = 1, SkillPerceptionChange = 1 },
+            new() { Text = "کیسه را همان‌جا بگذار و به خانه برو", NextSceneId = 6, FlagToSet = "IgnoredGold", KarmaMercyChange = 1, KarmaGreedChange = -1 },
+            new() { Text = "👁 [ادراک ۵+] چیزی روی دست ری دیدی — یه خالکوبی عجیب", NextSceneId = 6, FlagToSet = "SawColeTattoo", SkillPerceptionChange = 2, RequiredSkill = "Perception", RequiredSkillLevel = 5 }
         };
         db.Scenes.Add(scene5);
 
@@ -141,26 +161,29 @@ He disappears into the dark. The bag is still on the floor. It's waiting.",
         var scene6 = new Scene
         {
             Id = 6,
-            Title = "Scene 6: Rumors",
-            Description = @"You barely sleep. The bag sits in the corner. You swear you can hear it — heavy, patient, waiting.
+            Title = "صحنه ۶: شایعات",
+            Description = @"به سختی می‌خوابی.
 
-The next morning, you walk to the bakery.
+کیسه در گوشه‌ی اتاق خوابت نشسته است. قسم می‌خوری که می‌شنوی‌اش — سنگین، صبور، منتظر.
 
-Inside, three women stand near the counter. They stop talking when you enter. Then they start again — lower.
+صبح روز بعد، به نانوایی می‌روی. سه زن نزدیک پیشخوان ایستاده‌اند. وقتی وارد می‌شوی، ساکت می‌شوند.
 
-""...heard a man was seen last night...""
-""...three riders. They didn't come down. They just watched.""
+""...شنیدم دیشب یه مرد دیده شده...""
+""...زخمی. در حال فرار...""
+""...و امروز صبح، سه سوارکار روی خط‌الرأس. فقط تماشا کردن.""
 
-On the horizon, you see them. Three tiny black figures, motionless against the pale sky. Watching.",
+روی افق، آن‌ها را می‌بینی. سه پیکر کوچک سیاه. بی‌حرکت.
+
+تماشا می‌کنند.",
             IsEnding = false
         };
         scene6.Choices = new List<Choice>
         {
-            new() { Text = "Act normal. Tell no one.", NextSceneId = 7, FlagToSet = "StayedSilent" },
-            new() { Text = "Go to the Sheriff and report everything", NextSceneId = 7, FlagToSet = "ToldSheriff", ReputationSheriffChange = 2 },
-            new() { Text = "Visit Martha, the saloon owner", NextSceneId = 7, FlagToSet = "VisitedMartha" },
-            new() { Text = "Walk to the edge of town to see the riders", NextSceneId = 7, FlagToSet = "SawRiders" },
-            new() { Text = "Send a telegram to the U.S. Marshal", NextSceneId = 7, FlagToSet = "CalledMarshal", ReputationSheriffChange = 1 }
+            new() { Text = "عادی رفتار کن. به کسی چیزی نگو.", NextSceneId = 7, FlagToSet = "StayedSilent", SkillPerceptionChange = 1 },
+            new() { Text = "برو پیش کلانتر و همه چیز را بگو", NextSceneId = 7, FlagToSet = "ToldSheriff", ReputationSheriffChange = 2, TrustSheriffChange = 2 },
+            new() { Text = "به دیدن مارتا، صاحب سالن، برو", NextSceneId = 7, FlagToSet = "VisitedMartha", TrustMarthaChange = 2 },
+            new() { Text = "تا لبه‌ی شهر برو و سوارکارها را ببین", NextSceneId = 7, FlagToSet = "SawRiders", SkillPerceptionChange = 2 },
+            new() { Text = "تلگرافی برای مارشال ایالات متحده بفرست", NextSceneId = 7, FlagToSet = "CalledMarshal", ReputationSheriffChange = 1, TrustSheriffChange = 1 }
         };
         db.Scenes.Add(scene6);
 
@@ -168,23 +191,24 @@ On the horizon, you see them. Three tiny black figures, motionless against the p
         var scene7 = new Scene
         {
             Id = 7,
-            Title = "Scene 7: The Gang Arrives",
-            Description = @"Midday. Three riders enter Canyon Creek. Leather coats. Shiny revolvers. Scarred faces.
+            Title = "صحنه ۷: ورود دار و دسته",
+            Description = @"ظهر.
 
-They tie their horses at the saloon. They drink. Then they walk toward your store.
+سه سوارکار وارد کانیون کریک می‌شوند. کاپشن‌های چرمی. هفت‌تیرهای براق. صورت‌های زخم‌خورده.
 
-The leader is a tall man with a scar across his left cheek.
+رئیس، مردی بلندقد با زخمی روی گونه‌ی چپش است. اسمش جاناتانه.
 
-""Hello, shopkeeper. We're looking for a leather bag. Did you see anything?""",
+""سلام مغازه‌دار. دنبال یه کیسه‌ی چرمی هستیم. یه مرد دیشب از اینجا رد شده. چیزی دیدی؟""",
             IsEnding = false
         };
         scene7.Choices = new List<Choice>
         {
-            new() { Text = "No, I didn't see anything. (Lie)", NextSceneId = 8, FlagToSet = "LiedToGang", ReputationGangChange = -1 },
-            new() { Text = "A man came. But he left nothing. (Half-truth)", NextSceneId = 8, FlagToSet = "HalfTruthToGang" },
-            new() { Text = "Why do you want to know? (Resist)", NextSceneId = 8, FlagToSet = "ResistedGang", ReputationGangChange = -2 },
-            new() { Text = "Hand over the bag (Surrender)", NextSceneId = 8, FlagToSet = "GaveBagToGang", ReputationGangChange = 2, KarmaGreedChange = -1 },
-            new() { Text = "I'll tell you... for a price. (Bargain)", NextSceneId = 8, FlagToSet = "BargainedWithGang", KarmaGreedChange = 1 }
+            new() { Text = "نه، چیزی ندیدم. (دروغ)", NextSceneId = 8, FlagToSet = "LiedToGang", ReputationGangChange = -2, SkillPersuasionChange = 1 },
+            new() { Text = "یه مرد اومد. ولی چیزی نذاشت. (نیمه‌راست)", NextSceneId = 8, FlagToSet = "HalfTruthToGang", ReputationGangChange = -1, SkillPerceptionChange = 1 },
+            new() { Text = "چرا می‌خوای بدونی؟ (مقاومت)", NextSceneId = 8, FlagToSet = "ResistedGang", ReputationGangChange = -3, SkillIntimidationChange = 2 },
+            new() { Text = "کیسه را تحویل بده (تسلیم)", NextSceneId = 8, FlagToSet = "GaveBagToGang", ReputationGangChange = 3, KarmaHonorChange = -2 },
+            new() { Text = "بهت می‌گم... به یه قیمت. (معامله)", NextSceneId = 8, FlagToSet = "BargainedWithGang", ReputationGangChange = 1, KarmaGreedChange = 2, SkillPersuasionChange = 2 },
+            new() { Text = "🗣 [متقاعدسازی ۶+] با یه داستان، حواسشون رو پرت کن", NextSceneId = 8, FlagToSet = "TrickedGang", ReputationGangChange = -1, SkillPersuasionChange = 2, RequiredSkill = "Persuasion", RequiredSkillLevel = 6 }
         };
         db.Scenes.Add(scene7);
 
@@ -192,21 +216,21 @@ The leader is a tall man with a scar across his left cheek.
         var scene8 = new Scene
         {
             Id = 8,
-            Title = "Scene 8: The Watcher",
-            Description = @"The gang leaves. But one of them stays behind.
+            Title = "صحنه ۸: نگهبان",
+            Description = @"دار و دسته می‌روند. ولی یکی از آن‌ها می‌ماند.
 
-He stands across the street, leaning against a post. Watching your store. Not moving. Not hiding.
+او در آن طرف خیابان ایستاده، به تیرکی تکیه داده. مغازه‌ی تو را تماشا می‌کند.
 
-Hours pass. He's still there.",
+ساعت‌ها می‌گذرد. هنوز آنجاست.",
             IsEnding = false
         };
         scene8.Choices = new List<Choice>
         {
-            new() { Text = "Ignore him. Continue your day.", NextSceneId = 9, FlagToSet = "IgnoredWatcher" },
-            new() { Text = "Send a message to the Sheriff", NextSceneId = 9, FlagToSet = "MessagedSheriff", ReputationSheriffChange = 1 },
-            new() { Text = "Move the bag to a safer hiding place", NextSceneId = 9, FlagToSet = "MovedGold" },
-            new() { Text = "Approach the watcher and talk to him", NextSceneId = 9, FlagToSet = "TalkedToWatcher" },
-            new() { Text = "Close the store early and go home", NextSceneId = 9, FlagToSet = "ClosedEarly", ReputationTownChange = -1 }
+            new() { Text = "نادیده بگیر. به روزت ادامه بده.", NextSceneId = 9, FlagToSet = "IgnoredWatcher" },
+            new() { Text = "پیامی برای کلانتر بفرست", NextSceneId = 9, FlagToSet = "MessagedSheriff", ReputationSheriffChange = 1, TrustSheriffChange = 1 },
+            new() { Text = "کیسه را به جای امن‌تری منتقل کن", NextSceneId = 9, FlagToSet = "MovedGold", SkillPerceptionChange = 1 },
+            new() { Text = "به نگهبان نزدیک شو و با او حرف بزن", NextSceneId = 9, FlagToSet = "TalkedToWatcher", SkillPersuasionChange = 1 },
+            new() { Text = "زودتر مغازه را ببند و به خانه برو", NextSceneId = 9, FlagToSet = "ClosedEarly", ReputationTownChange = -1 }
         };
         db.Scenes.Add(scene8);
 
@@ -214,27 +238,28 @@ Hours pass. He's still there.",
         var scene9 = new Scene
         {
             Id = 9,
-            Title = "Scene 9: May",
-            Description = @"Three days later. A woman enters your store. She is young, tired, with a small child.
+            Title = "صحنه ۹: سارا",
+            Description = @"سه روز بعد. زنی وارد مغازه‌ات می‌شود. جوان است، خسته، با بچه‌ی کوچکی که دستش را گرفته.
 
-""Are you Elias? The shopkeeper?""
+""شما جان هستید؟ مغازه‌دار؟""
 
-You nod.
+سر تکان می‌دهی.
 
-""I'm May. Cole's wife. I know he came here. I know he's dead.""
+""من سارا هستم. زن ری. می‌دونم اومد اینجا. می‌دونم مرده.""
 
-She pauses. Her voice cracks.
+مکث می‌کند. صدایش می‌شکند.
 
-""But that gold... it's not ours. It belongs to a gang that attacked an innocent family. They killed a father. They burned a farm. I just want... justice.""",
+""ولی اون طلا... مال ما نیست. مال دار و دسته‌ایه که به یه خانواده‌ی بی‌گناه حمله کردن. من فقط... عدالت می‌خوام.""",
             IsEnding = false
         };
         scene9.Choices = new List<Choice>
         {
-            new() { Text = "Give the gold to May so she can return it", NextSceneId = 10, FlagToSet = "GaveGoldToMay", TrustMayChange = 2, KarmaGreedChange = -1, ReputationTownChange = 1 },
-            new() { Text = "Keep the gold. Tell her you'll decide yourself.", NextSceneId = 10, FlagToSet = "KeptGoldFromMay", TrustMayChange = -1, KarmaGreedChange = 1 },
-            new() { Text = "Tell her to go to the Sheriff", NextSceneId = 10, FlagToSet = "SentMayToSheriff", TrustMayChange = -1 },
-            new() { Text = "Suspect she wants the gold for herself", NextSceneId = 10, FlagToSet = "SuspectedMay", TrustMayChange = -2 },
-            new() { Text = "Ask her about Cole. Who was he really?", NextSceneId = 10, FlagToSet = "AskedAboutCole", TrustMayChange = 1 }
+            new() { Text = "طلا را به سارا بده تا برگرداند", NextSceneId = 10, FlagToSet = "GaveGoldToMay", TrustMayChange = 3, KarmaMercyChange = 2, ReputationTownChange = 1 },
+            new() { Text = "طلا را نگه دار. بگو خودت تصمیم می‌گیری.", NextSceneId = 10, FlagToSet = "KeptGoldFromMay", TrustMayChange = -2, KarmaGreedChange = 2 },
+            new() { Text = "بگو برود پیش کلانتر", NextSceneId = 10, FlagToSet = "SentMayToSheriff", TrustMayChange = -1 },
+            new() { Text = "شک کن که خودش طلا را می‌خواهد", NextSceneId = 10, FlagToSet = "SuspectedMay", TrustMayChange = -3 },
+            new() { Text = "از ری بپرس. او واقعاً کی بود؟", NextSceneId = 10, FlagToSet = "AskedAboutCole", TrustMayChange = 2, SkillEmpathyChange = 1 },
+            new() { Text = "💗 [همدلی ۵+] بذار بچه‌اش بشینه، به سارا آرامش بده", NextSceneId = 10, FlagToSet = "ComfortedSara", TrustMayChange = 3, SkillEmpathyChange = 2, RequiredSkill = "Empathy", RequiredSkillLevel = 5 }
         };
         db.Scenes.Add(scene9);
 
@@ -242,23 +267,23 @@ She pauses. Her voice cracks.
         var scene10 = new Scene
         {
             Id = 10,
-            Title = "Scene 10: Cole's Story",
-            Description = @"May sits down. She holds her child close.
+            Title = "صحنه ۱۰: داستان ری",
+            Description = @"سارا می‌نشیند. بچه‌اش را نزدیک خود نگه می‌دارد.
 
-""Cole wasn't a bad man. He was a farmer. We had a small farm near Red Creek. The gang came one night. They burned our barn. They took everything.""
+""ری مرد بدی نبود. یه کشاورز بود. یه مزرعه‌ی کوچیک نزدیک رد کریک داشتیم. دار و دسته یه شب اومدن. انبارمون رو سوزوندن. همه چیز رو بردن.""
 
-She wipes her eyes.
+چشم‌هایش را پاک می‌کند.
 
-""He stole their gold. But not for us. He wanted to give it back to the family they destroyed. The Pattersons. They live three days north of here.""",
+""طلاشون رو دزدید. ولی نه برای ما. می‌خواست به خانواده‌ای برگردونه که نابودش کردن. پترسون‌ها. سه روز بالاتر از اینجا زندگی می‌کنن.""",
             IsEnding = false
         };
         scene10.Choices = new List<Choice>
         {
-            new() { Text = "Promise to help her finish Cole's mission", NextSceneId = 11, FlagToSet = "PromisedToHelp", TrustMayChange = 2, ReputationTownChange = 1 },
-            new() { Text = "Ask how much gold there is. Twenty kilograms is a lot.", NextSceneId = 11, FlagToSet = "AskedAboutGoldAmount", KarmaGreedChange = 1 },
-            new() { Text = "Tell her you need time to think", NextSceneId = 11, FlagToSet = "NeededTime" },
-            new() { Text = "Offer her and the child a place to stay", NextSceneId = 11, FlagToSet = "OfferedShelter", TrustMayChange = 2, ReputationTownChange = 1 },
-            new() { Text = "Ask her to leave. You need to be alone.", NextSceneId = 11, FlagToSet = "SentMayAway", TrustMayChange = -2 }
+            new() { Text = "قول بده مأموریت ری را تمام کنی", NextSceneId = 11, FlagToSet = "PromisedToHelp", TrustMayChange = 3, ReputationTownChange = 1 },
+            new() { Text = "بپرس چقدر طلا هست. بیست کیلو خیلیه.", NextSceneId = 11, FlagToSet = "AskedAboutGoldAmount", KarmaGreedChange = 2 },
+            new() { Text = "بگو وقت می‌خواهی فکر کنی", NextSceneId = 11, FlagToSet = "NeededTime" },
+            new() { Text = "به او و بچه‌اش جا بده", NextSceneId = 11, FlagToSet = "OfferedShelter", TrustMayChange = 3, KarmaMercyChange = 2 },
+            new() { Text = "بگو برود. باید تنها باشی.", NextSceneId = 11, FlagToSet = "SentMayAway", TrustMayChange = -2, KarmaMercyChange = -1 }
         };
         db.Scenes.Add(scene10);
 
@@ -266,24 +291,25 @@ She wipes her eyes.
         var scene11 = new Scene
         {
             Id = 11,
-            Title = "Scene 11: The Reckoning",
-            Description = @"That night. The moon is hidden. The street is silent.
+            Title = "صحنه ۱۱: تسویه حساب",
+            Description = @"آن شب. ماه پنهان است. خیابان ساکت.
 
-Then you hear them. Hooves. Many of them.
+بعد می‌شنوی‌شان. صدای سم. تعداد زیادی.
 
-The gang leader stands outside your door with five men. Torches in their hands.
+جاناتان با پنج مرد بیرون درِ تو ایستاده. مشعل در دست دارند.
 
-""We know it's here, shopkeeper. Hand it over. Or we burn your store down with you inside.""",
+""می‌دونیم اینجاست، مغازه‌دار. تحویلش بده. وگرنه مغازه‌ت رو با خودت آتیش می‌زنیم.""",
             IsEnding = false
         };
         scene11.Choices = new List<Choice>
         {
-            new() { Text = "Fight back", NextSceneId = 12, FlagToSet = "ChoseFight" },
-            new() { Text = "Surrender and hand over the bag", NextSceneId = 13, FlagToSet = "ChoseSurrender", KarmaGreedChange = -1 },
-            new() { Text = "Send for the Sheriff", NextSceneId = 13, FlagToSet = "ChoseSheriff", ReputationSheriffChange = 1 },
-            new() { Text = "Make a deal: The gold for our safety", NextSceneId = 13, FlagToSet = "ChoseDeal" },
-            new() { Text = "Trick them: hide the gold, tell them it's gone", NextSceneId = 13, FlagToSet = "ChoseTrick" },
-            new() { Text = "Run out the back door", NextSceneId = 13, FlagToSet = "ChoseRun", ReputationTownChange = -2 }
+            new() { Text = "مقاومت کن", NextSceneId = 12, FlagToSet = "ChoseFight", SkillCombatChange = 1 },
+            new() { Text = "تسلیم شو و کیسه را تحویل بده", NextSceneId = 13, FlagToSet = "ChoseSurrender", KarmaHonorChange = -2, KarmaMercyChange = -1 },
+            new() { Text = "به دنبال کلانتر بفرست", NextSceneId = 13, FlagToSet = "ChoseSheriff", ReputationSheriffChange = 1, TrustSheriffChange = 1 },
+            new() { Text = "معامله کن: طلا برای امنیت ما", NextSceneId = 13, FlagToSet = "ChoseDeal", SkillPersuasionChange = 1 },
+            new() { Text = "گولشان بزن: طلا را پنهان کن، بگو رفته", NextSceneId = 13, FlagToSet = "ChoseTrick", SkillPersuasionChange = 1 },
+            new() { Text = "از درِ پشتی فرار کن", NextSceneId = 13, FlagToSet = "ChoseRun", ReputationTownChange = -2, KarmaHonorChange = -1 },
+            new() { Text = "🔫 [نبرد ۶+] تفنگت رو بکش و اول شلیک کن", NextSceneId = 12, FlagToSet = "ChoseFight", SkillCombatChange = 2, RequiredSkill = "Combat", RequiredSkillLevel = 6 }
         };
         db.Scenes.Add(scene11);
 
@@ -291,23 +317,23 @@ The gang leader stands outside your door with five men. Torches in their hands.
         var scene12 = new Scene
         {
             Id = 12,
-            Title = "Scene 12: The Fight",
-            Description = @"You grab your rifle. You take position behind the counter.
+            Title = "صحنه ۱۲: نبرد",
+            Description = @"تفنگت را برمی‌داری. پشت پیشخوان موضع می‌گیری.
 
-The first man kicks the door open. You fire.
+اولین مرد در را با لگد باز می‌کند. شلیک می‌کنی.
 
-The night explodes. Bullets tear through wood. Glass shatters.
+شب منفجر می‌شود. گلوله‌ها چوب را می‌درند. شیشه خرد می‌شود.
 
-The leader shouts: ""Burn it! Burn the whole store!""",
+جاناتان فریاد می‌زند: ""آتیشش بزن! کل مغازه رو بسوزون!""",
             IsEnding = false
         };
         scene12.Choices = new List<Choice>
         {
-            new() { Text = "Aim for the leader", NextSceneId = 14, FlagToSet = "AimedLeader" },
-            new() { Text = "Aim for the men with torches", NextSceneId = 14, FlagToSet = "AimedTorches" },
-            new() { Text = "Fire warning shots and demand they leave", NextSceneId = 14, FlagToSet = "WarningShots" },
-            new() { Text = "Throw a lantern to create a fire between you", NextSceneId = 14, FlagToSet = "UsedFire" },
-            new() { Text = "Retreat to the back room and barricade", NextSceneId = 14, FlagToSet = "Retreated" }
+            new() { Text = "به سمت جاناتان نشانه بگیر", NextSceneId = 14, FlagToSet = "AimedLeader", SkillCombatChange = 1 },
+            new() { Text = "به سمت مردهای مشعل‌دار نشانه بگیر", NextSceneId = 14, FlagToSet = "AimedTorches", SkillCombatChange = 1 },
+            new() { Text = "تیر هشدار بزن و بخواه بروند", NextSceneId = 14, FlagToSet = "WarningShots", KarmaMercyChange = 1 },
+            new() { Text = "فانوسی را پرت کن تا آتش بسازد", NextSceneId = 14, FlagToSet = "UsedFire", SkillPerceptionChange = 1 },
+            new() { Text = "به اتاق پشتی عقب‌نشینی کن", NextSceneId = 14, FlagToSet = "Retreated", SkillPerceptionChange = 1 }
         };
         db.Scenes.Add(scene12);
 
@@ -315,25 +341,25 @@ The leader shouts: ""Burn it! Burn the whole store!""",
         var scene13 = new Scene
         {
             Id = 13,
-            Title = "Scene 13: The Deal",
-            Description = @"You step outside. Hands raised.
+            Title = "صحنه ۱۳: معامله",
+            Description = @"بیرون می‌آیی. دست‌ها بالا.
 
-""The gold. I'll give it to you. But you leave this town. You leave May and her child alone.""
+""طلا. تحویلت می‌دم. ولی این شهر رو ترک کن. سارا و بچه‌اش رو تنها بذار. هرگز برنگرد.""
 
-The leader smiles.
+جاناتان لبخند می‌زند.
 
-""You're in no position to negotiate, shopkeeper.""
+""تو موقعیت معامله نیستی، مغازه‌دار.""
 
-But he's listening. He wants the gold more than he wants blood.",
+ولی گوش می‌دهد. طلا را بیشتر از خون می‌خواهد.",
             IsEnding = false
         };
         scene13.Choices = new List<Choice>
         {
-            new() { Text = "Hand over the gold and trust his word", NextSceneId = 14, FlagToSet = "TrustedGang" },
-            new() { Text = "Demand a written promise signed by all of them", NextSceneId = 14, FlagToSet = "DemandedPromise" },
-            new() { Text = "Give them half the gold now, half later", NextSceneId = 14, FlagToSet = "GaveHalfGold", KarmaGreedChange = 1 },
-            new() { Text = "Secretly keep some gold for May", NextSceneId = 14, FlagToSet = "KeptSomeForMay", TrustMayChange = 2 },
-            new() { Text = "Change your mind and fight instead", NextSceneId = 12, FlagToSet = "ChangedMind" }
+            new() { Text = "طلا را تحویل بده و به حرفش اعتماد کن", NextSceneId = 14, FlagToSet = "TrustedGang" },
+            new() { Text = "قسم‌نامه‌ی کتبی با امضای همه بخواه", NextSceneId = 14, FlagToSet = "DemandedPromise", SkillPersuasionChange = 1 },
+            new() { Text = "نصف طلا را حالا بده، نصف بعداً", NextSceneId = 14, FlagToSet = "GaveHalfGold", KarmaGreedChange = 1 },
+            new() { Text = "مخفیانه مقداری طلا برای سارا نگه دار", NextSceneId = 14, FlagToSet = "KeptSomeForMay", TrustMayChange = 2, KarmaMercyChange = 1 },
+            new() { Text = "نظرت را عوض کن و بجنگ", NextSceneId = 12, FlagToSet = "ChangedMind", SkillCombatChange = 1 }
         };
         db.Scenes.Add(scene13);
 
@@ -341,12 +367,8 @@ But he's listening. He wants the gold more than he wants blood.",
         var scene14 = new Scene
         {
             Id = 14,
-            Title = "Ending: The Story Ends",
-            Description = @"The dust settles. The night grows quiet.
-
-Your choices have shaped what comes next. Every decision you made — every kindness, every cruelty, every moment of hesitation — has led to this.
-
-The story of Elias of Canyon Creek is complete.",
+            Title = "پایان",
+            Description = "پایان.",
             IsEnding = true
         };
         db.Scenes.Add(scene14);

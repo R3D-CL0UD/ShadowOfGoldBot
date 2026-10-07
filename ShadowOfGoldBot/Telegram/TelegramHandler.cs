@@ -8,6 +8,9 @@ namespace ShadowOfGoldBot.Telegram;
 
 public class TelegramHandler
 {
+    private const string ChannelUsername = "@DISC0ELYS1UM";
+    private const string ChannelUrl = "https://t.me/DISC0ELYS1UM";
+
     private readonly ITelegramBotClient _bot;
     private readonly GameHandler _gameHandler;
 
@@ -32,12 +35,50 @@ public class TelegramHandler
         }
     }
 
+    private async Task<bool> IsUserMemberAsync(long userId, CancellationToken ct)
+    {
+        try
+        {
+            var member = await _bot.GetChatMember(ChannelUsername, userId, ct);
+            return member.Status is ChatMemberStatus.Member
+                or ChatMemberStatus.Administrator
+                or ChatMemberStatus.Creator;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private async Task SendJoinRequestAsync(long chatId, CancellationToken ct)
+    {
+        var keyboard = new InlineKeyboardMarkup(new[]
+        {
+            new[] { InlineKeyboardButton.WithUrl("📢 عضویت در کانال", ChannelUrl) },
+            new[] { InlineKeyboardButton.WithCallbackData("✅ عضو شدم", "check_membership") }
+        });
+
+        await _bot.SendMessage(chatId,
+            "🌵 برای استفاده از <b>سایه‌ی طلا</b>، اول باید عضو کانال ما بشی:\n\n" +
+            $"{ChannelUsername}\n\n" +
+            "بعد از عضویت، روی دکمه‌ی «✅ عضو شدم» بزن.",
+            parseMode: ParseMode.Html,
+            replyMarkup: keyboard,
+            cancellationToken: ct);
+    }
+
     private async Task HandleMessageAsync(Message message, string text, CancellationToken ct)
     {
         var chatId = message.Chat.Id;
         var userId = message.From!.Id;
         var firstName = message.From.FirstName;
         var username = message.From.Username;
+
+        if (!await IsUserMemberAsync(userId, ct))
+        {
+            await SendJoinRequestAsync(chatId, ct);
+            return;
+        }
 
         switch (text)
         {
@@ -58,24 +99,24 @@ public class TelegramHandler
 
             case "/help":
                 await _bot.SendMessage(chatId,
-                    "<b>📖 Shadow of Gold</b>\n\n" +
-                    "/start — Begin a new game\n" +
-                    "/restart — Start over\n" +
-                    "/stats — View your reputation\n" +
-                    "/help — Show this message\n" +
-                    "/about — About the game",
+                    "<b>📖 سایه‌ی طلا</b>\n\n" +
+                    "/start — شروع بازی جدید\n" +
+                    "/restart — شروع از اول\n" +
+                    "/stats — دیدن اعتبار\n" +
+                    "/help — همین پیام\n" +
+                    "/about — درباره‌ی بازی",
                     parseMode: ParseMode.Html, cancellationToken: ct);
                 break;
 
             case "/about":
                 await _bot.SendMessage(chatId,
-                    "<b>🌵 Shadow of Gold</b>\n\n" +
-                    "An interactive western tale set in Canyon Creek, 1887.",
+                    "<b>🌵 سایه‌ی طلا</b>\n\n" +
+                    "یک داستان تعاملی غرب وحشی در کانیون کریک، ۱۸۸۷.",
                     parseMode: ParseMode.Html, cancellationToken: ct);
                 break;
 
             default:
-                await _bot.SendMessage(chatId, "Use /start to begin, /help for commands.",
+                await _bot.SendMessage(chatId, "برای شروع /start بزن، برای راهنما /help.",
                     cancellationToken: ct);
                 break;
         }
@@ -91,14 +132,31 @@ public class TelegramHandler
         var messageId = callback.Message.MessageId;
         var userId = callback.From.Id;
 
+        if (callback.Data == "check_membership")
+        {
+            if (await IsUserMemberAsync(userId, ct))
+            {
+                await _bot.EditMessageText(chatId, messageId,
+                    "✅ عضویتت تایید شد.\n\nبرای شروع بازی /start بزن.",
+                    cancellationToken: ct);
+            }
+            else
+            {
+                await _bot.SendMessage(chatId,
+                    "❌ هنوز عضو کانال نشدی. اول عضو شو، بعد دوباره امتحان کن.",
+                    cancellationToken: ct);
+            }
+            return;
+        }
+
         if (callback.Data.StartsWith("choice_"))
         {
             var choiceNum = int.Parse(callback.Data.Substring(7));
             var result = await _gameHandler.HandleChoiceAsync(userId, choiceNum);
 
-            if (result == "Invalid choice.")
+            if (result == "انتخاب نامعتبر.")
             {
-                await _bot.SendMessage(chatId, "⚠ Invalid choice.", cancellationToken: ct);
+                await _bot.SendMessage(chatId, "⚠ انتخاب نامعتبر.", cancellationToken: ct);
                 return;
             }
 
@@ -127,7 +185,6 @@ public class TelegramHandler
 
         if (choices.Count == 0)
         {
-            // حذف کیبورد قبلی
             await _bot.EditMessageText(chatId, messageId, sceneText,
                 parseMode: ParseMode.Html,
                 replyMarkup: new InlineKeyboardMarkup(Array.Empty<InlineKeyboardButton[]>()),
@@ -142,9 +199,15 @@ public class TelegramHandler
 
     private static InlineKeyboardMarkup BuildKeyboard(List<Models.Choice> choices)
     {
-        var rows = choices.Select((c, i) =>
-            new[] { InlineKeyboardButton.WithCallbackData($"{i + 1}. {c.Text}", $"choice_{i + 1}") }
+        var buttons = choices.Select((c, i) =>
+            InlineKeyboardButton.WithCallbackData($"{i + 1}", $"choice_{i + 1}")
         ).ToList();
+
+        var rows = new List<InlineKeyboardButton[]>();
+        for (int i = 0; i < buttons.Count; i += 5)
+        {
+            rows.Add(buttons.Skip(i).Take(5).ToArray());
+        }
 
         return new InlineKeyboardMarkup(rows);
     }

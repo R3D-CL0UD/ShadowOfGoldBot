@@ -16,13 +16,36 @@ public class GameHandler
     public async Task<string> HandleStartAsync(long userId, string firstName, string? username)
     {
         var player = await _gameService.GetOrCreatePlayerAsync(userId, firstName, username);
+
+        bool isNewGame = player.CurrentSceneId == 1 && !player.Flags.Any();
+
+        if (isNewGame)
+        {
+            var welcome = @"🌵 <b>سایه‌ی طلا</b>
+
+کانیون کریک، ۱۸۸۷.
+عصر یاغی‌ها داره تموم می‌شه. راه‌آهن داره میاد، قانون داره گسترش پیدا می‌کنه. ولی هنوز جاهایی هست که تفنگ حرف اول رو می‌زنه.
+
+تو <b>جان</b> هستی. یه مغازه‌دار ساده. نه هفت‌تیرکش ماهری، نه قهرمانی.
+
+امشب یه غریبه میاد. یه کیسه. یه انتخاب.
+
+آماده‌ای؟
+
+━━━━━━━━━━━━━━━━
+
+";
+            var sceneText = await GetCurrentSceneTextAsync(userId);
+            return welcome + sceneText;
+        }
+
         return await GetCurrentSceneTextAsync(userId);
     }
 
     public async Task<string> GetCurrentSceneTextAsync(long userId)
     {
         var scene = await _gameService.GetCurrentSceneAsync(userId);
-        if (scene is null) return "Scene not found.";
+        if (scene is null) return "صحنه پیدا نشد.";
 
         if (scene.IsEnding)
         {
@@ -30,7 +53,15 @@ public class GameHandler
             return GetEndingText(player);
         }
 
-        var text = $"<b>{scene.Title}</b>\n\n{WebUtility.HtmlEncode(scene.Description)}\n\n━━━━━━━━━━━━━━━━\n\n<b>What do you do?</b>";
+        var choices = await _gameService.GetCurrentChoicesAsync(userId);
+
+        var text = $"<b>{scene.Title}</b>\n\n{WebUtility.HtmlEncode(scene.Description)}\n\n━━━━━━━━━━━━━━━━\n\n<b>چه می‌کنی؟</b>\n\n";
+
+        for (int i = 0; i < choices.Count; i++)
+        {
+            text += $"<b>{i + 1}.</b> {WebUtility.HtmlEncode(choices[i].Text)}\n";
+        }
+
         return text;
     }
 
@@ -41,10 +72,21 @@ public class GameHandler
 
     public async Task<string> HandleChoiceAsync(long userId, int choiceNumber)
     {
-        var scene = await _gameService.MakeChoiceAsync(userId, choiceNumber - 1);
-        if (scene is null) return "Invalid choice.";
+        var playerBefore = await _gameService.GetOrCreatePlayerAsync(userId, "", null);
+        var stateBefore = SnapshotState(playerBefore.State);
 
-        return await GetCurrentSceneTextAsync(userId);
+        var scene = await _gameService.MakeChoiceAsync(userId, choiceNumber - 1);
+        if (scene is null) return "انتخاب نامعتبر.";
+
+        var playerAfter = await _gameService.GetOrCreatePlayerAsync(userId, "", null);
+        var changes = GetChanges(stateBefore, playerAfter.State);
+
+        var sceneText = await GetCurrentSceneTextAsync(userId);
+
+        if (!string.IsNullOrEmpty(changes))
+            return $"<i>{changes}</i>\n\n{sceneText}";
+
+        return sceneText;
     }
 
     public async Task<string> HandleRestartAsync(long userId)
@@ -56,135 +98,192 @@ public class GameHandler
     public async Task<string> HandleStatsAsync(long userId)
     {
         var player = await _gameService.GetOrCreatePlayerAsync(userId, "Player", null);
-        if (player.State is null) return "No stats available.";
+        if (player.State is null) return "آماری موجود نیست.";
 
-        return $@"📊 <b>Your Stats</b>
+        var s = player.State;
 
-Reputation (Town): {player.State.ReputationTown}
-Reputation (Sheriff): {player.State.ReputationSheriff}
-Reputation (Gang): {player.State.ReputationGang}
-Trust (May): {player.State.TrustMay}
-Karma (Greed): {player.State.KarmaGreed}
+        return $@"📊 <b>وضعیت جان</b>
 
-Flags: {player.Flags.Count}";
+❤️ سلامت: {s.Health}
+🧠 روحیه: {s.Morale}
+
+<b>اعتبار</b>
+🏘 شهر: {FormatNum(s.ReputationTown)}
+👮 کلانتر: {FormatNum(s.ReputationSheriff)}
+🤠 دار و دسته: {FormatNum(s.ReputationGang)}
+🔫 یاغی‌ها: {FormatNum(s.ReputationOutlaws)}
+
+<b>کارما</b>
+💰 طمع: {FormatNum(s.KarmaGreed)}
+⚔️ شرافت: {FormatNum(s.KarmaHonor)}
+🕊 رحم: {FormatNum(s.KarmaMercy)}
+
+<b>مهارت‌ها</b>
+👁 ادراک: {s.SkillPerception}/10
+🗣 متقاعدسازی: {s.SkillPersuasion}/10
+😠 تهدید: {s.SkillIntimidation}/10
+💗 همدلی: {s.SkillEmpathy}/10
+🔫 نبرد: {s.SkillCombat}/10
+
+<b>پرچم‌ها:</b> {player.Flags.Count}";
     }
 
-    // ==================== ENDING LOGIC ====================
+    // ==================== HELPERS ====================
+
+    private static string FormatNum(int n) => n > 0 ? $"+{n}" : n.ToString();
+
+    private static (int Health, int Morale, int RepTown, int RepSheriff, int RepGang, int RepOutlaws,
+        int TrustMartha, int TrustSheriff, int TrustHartley, int TrustTom, int TrustSara, int TrustCole,
+        int KarmaGreed, int KarmaHonor, int KarmaMercy,
+        int SkillPerception, int SkillPersuasion, int SkillIntimidation, int SkillEmpathy, int SkillCombat)
+        SnapshotState(PlayerState? s)
+    {
+        if (s is null) return default;
+        return (s.Health, s.Morale,
+            s.ReputationTown, s.ReputationSheriff, s.ReputationGang, s.ReputationOutlaws,
+            s.TrustMartha, s.TrustSheriff, s.TrustHartley, s.TrustTom, s.TrustSara, s.TrustCole,
+            s.KarmaGreed, s.KarmaHonor, s.KarmaMercy,
+            s.SkillPerception, s.SkillPersuasion, s.SkillIntimidation, s.SkillEmpathy, s.SkillCombat);
+    }
+
+    private static string GetChanges(
+        (int Health, int Morale, int RepTown, int RepSheriff, int RepGang, int RepOutlaws,
+        int TrustMartha, int TrustSheriff, int TrustHartley, int TrustTom, int TrustSara, int TrustCole,
+        int KarmaGreed, int KarmaHonor, int KarmaMercy,
+        int SkillPerception, int SkillPersuasion, int SkillIntimidation, int SkillEmpathy, int SkillCombat) before,
+        PlayerState? after)
+    {
+        if (after is null) return string.Empty;
+
+        var parts = new List<string>();
+
+        void Add(string text, int diff)
+        {
+            if (diff == 0) return;
+            var sign = diff > 0 ? "+" : "-";
+            parts.Add($"{text} {sign}{Math.Abs(diff)}");
+        }
+
+        Add("🏘 اعتبارت پیش مردم شهر", after.ReputationTown - before.RepTown);
+        Add("👮 اعتبارت پیش کلانتر", after.ReputationSheriff - before.RepSheriff);
+        Add("🤠 اعتبارت پیش دار و دسته", after.ReputationGang - before.RepGang);
+        Add("💰 طمعت", after.KarmaGreed - before.KarmaGreed);
+        Add("⚔️ شرافتت", after.KarmaHonor - before.KarmaHonor);
+        Add("🕊 رحمت", after.KarmaMercy - before.KarmaMercy);
+        Add("💗 اعتماد سارا بهت", after.TrustSara - before.TrustSara);
+        Add("👁 ادراک", after.SkillPerception - before.SkillPerception);
+        Add("🗣 متقاعدسازی", after.SkillPersuasion - before.SkillPersuasion);
+        Add("😠 تهدید", after.SkillIntimidation - before.SkillIntimidation);
+        Add("💗 همدلی", after.SkillEmpathy - before.SkillEmpathy);
+        Add("🔫 نبرد", after.SkillCombat - before.SkillCombat);
+
+        return parts.Count == 0 ? string.Empty : "📌 " + string.Join("\n📌 ", parts);
+    }
+
+    // ==================== ENDINGS ====================
 
     private static string GetEndingText(Player player)
     {
         var flags = player.Flags.Select(f => f.FlagName).ToHashSet();
-        var s = player.State;
 
-        // 1. Traitor — gave bag or surrendered
         if (flags.Contains("GaveBagToGang") || flags.Contains("ChoseSurrender"))
             return EndingTraitor;
 
-        // 2. Neutrality — ran away
         if (flags.Contains("ChoseRun"))
             return EndingNeutrality;
 
-        // 3. Judge — took gold to Sheriff and told Sheriff
         if (flags.Contains("GaveToSheriff") && flags.Contains("ToldSheriff"))
             return EndingJudge;
 
-        // 4. Redemption — gave gold to May and promised to help
         if (flags.Contains("GaveGoldToMay") && flags.Contains("PromisedToHelp"))
             return EndingRedemption;
 
-        // 5. Quiet Sacrifice — promised to help and chose to fight
         if (flags.Contains("PromisedToHelp") && flags.Contains("ChoseFight"))
             return EndingSacrifice;
 
-        // 6. The Fall — fought, kept gold, greedy
         if (flags.Contains("ChoseFight") && flags.Contains("HasGold"))
             return EndingFall;
 
-        // 7. Reluctant Hero — fought
         if (flags.Contains("ChoseFight"))
             return EndingHero;
 
         return EndingFall;
     }
 
-    private const string EndingRedemption = @"🏆 <b>Ending: Redemption</b>
+    private const string EndingRedemption = @"🏆 <b>پایان: رستگاری</b>
 
-The gold returns to the Patterson family. A U.S. Marshal — already tracking the gang — arrests them.
+طلا به خانواده‌ی پترسون برمی‌گردد. یک مارشال ایالات متحده — که از قبل دنبال دار و دسته بود — آن‌ها را دستگیر می‌کند.
 
-May and her child leave for California and start a new life.
+سارا و بچه‌اش به کالیفرنیا می‌روند و زندگی جدیدی را شروع می‌کنند.
 
-You stay in Canyon Creek. A simple shopkeeper. But at peace.
+تو در کانیون کریک می‌مانی. یک مغازه‌دار ساده. ولی در آرامش.
 
-━━━━━━━━━━━━━━━━
-Type /restart to play again.";
-
-    private const string EndingFall = @"💀 <b>Ending: The Fall</b>
-
-The gold is yours. You fight the gang and win. But two men die. One of them was a young outlaw, barely eighteen.
-
-The town turns against you. Your store thrives, but you are alone.
-
-The gold is heavy. Heavier than you imagined.
+جان، تو کار درست را انجام دادی.
 
 ━━━━━━━━━━━━━━━━
-Type /restart to play again.";
+برای بازی مجدد /restart بزن.";
 
-    private const string EndingNeutrality = @"🚶 <b>Ending: Neutrality</b>
+    private const string EndingFall = @"💀 <b>پایان: سقوط</b>
 
-You take the gold and flee Canyon Creek in the middle of the night. You change your name. You move west.
+طلا مال تو می‌شود. با دار و دسته می‌جنگی و پیروز می‌شوی. ولی دو مرد می‌میرند. یکی از آن‌ها یک یاغی جوان بود.
 
-But the gang hunts you. You start a new life — but always in fear. Always looking over your shoulder.
+شهر علیه تو می‌شود. مغازه‌ات رونق می‌گیرد، ولی تنها می‌مانی.
 
-━━━━━━━━━━━━━━━━
-Type /restart to play again.";
-
-    private const string EndingTraitor = @"🐍 <b>Ending: The Traitor</b>
-
-You hand the gold to the gang. They leave. You survive.
-
-But May and her child are left with nothing. The Sheriff finds out. The town casts you out.
-
-You never open a store again. You live in shame.
+طلا سنگین است. سنگین‌تر از آنچه تصور می‌کردی.
 
 ━━━━━━━━━━━━━━━━
-Type /restart to play again.";
+برای بازی مجدد /restart بزن.";
 
-    private const string EndingHero = @"⭐ <b>Ending: The Reluctant Hero</b>
+    private const string EndingNeutrality = @"🚶 <b>پایان: بی‌طرفی</b>
 
-You fight the gang and win. You return the gold to the town.
+طلا را برمی‌داری و در نیمه‌شب از کانیون کریک فرار می‌کنی. نامت را عوض می‌کنی. به سمت غرب می‌روی.
 
-You become a legend. Children tell stories about you.
-
-But you never wanted this. You just wanted a quiet life.
-
-A simple man forced to be a hero.
+ولی دار و دسته دنبالت هستند. زندگی جدیدی شروع می‌کنی — ولی همیشه در ترس.
 
 ━━━━━━━━━━━━━━━━
-Type /restart to play again.";
+برای بازی مجدد /restart بزن.";
 
-    private const string EndingSacrifice = @"🕊️ <b>Ending: The Quiet Sacrifice</b>
+    private const string EndingTraitor = @"🐍 <b>پایان: خائن</b>
 
-You give the gold to May and tell her to leave town. You stay behind to face the gang alone.
+طلا را به دار و دسته می‌دهی. می‌روند. زنده می‌مانی.
 
-You die. But May and her child escape.
+ولی سارا و بچه‌اش را فروختی. کلانتر می‌فهمد. شهر طردت می‌کند.
 
-The town remembers you as a coward for a year. Then the truth comes out.
-
-Too late, but it comes out. You are honored.
+در شرم زندگی می‌کنی.
 
 ━━━━━━━━━━━━━━━━
-Type /restart to play again.";
+برای بازی مجدد /restart بزن.";
 
-    private const string EndingJudge = @"⚖️ <b>Ending: The Judge</b>
+    private const string EndingHero = @"⭐ <b>پایان: قهرمان ناخواسته</b>
 
-You take the gold to the Sheriff. The gang is arrested. A trial is held.
+با دار و دسته می‌جنگی و پیروز می‌شوی. طلا را به شهر برمی‌گردانی.
 
-May testifies. The Patterson family gets their justice.
+به یک افسانه تبدیل می‌شوی.
 
-You are asked to testify. You do. You tell the truth.
-
-The town respects you. Cole's name is cleared.
+ولی تو هرگز این را نمی‌خواستی. تو فقط یک زندگی آرام می‌خواستی.
 
 ━━━━━━━━━━━━━━━━
-Type /restart to play again.";
+برای بازی مجدد /restart بزن.";
+
+    private const string EndingSacrifice = @"🕊️ <b>پایان: فداکاری خاموش</b>
+
+طلا را به سارا می‌دهی و می‌گویی از شهر برود. خودت می‌مانی تا تنها با دار و دسته روبرو شوی.
+
+می‌میری. ولی سارا و بچه‌اش فرار می‌کنند.
+
+شهر یک سال تو را ترسو می‌داند. بعد حقیقت آشکار می‌شود.
+
+━━━━━━━━━━━━━━━━
+برای بازی مجدد /restart بزن.";
+
+    private const string EndingJudge = @"⚖️ <b>پایان: قاضی</b>
+
+طلا را به کلانتر می‌بری. دار و دسته دستگیر می‌شوند. محاکمه برگزار می‌شود.
+
+سارا شهادت می‌دهد. خانواده‌ی پترسون عدالتشان را می‌گیرند.
+
+شهر به تو احترام می‌گذارد. نام ری پاک می‌شود.
+
+━━━━━━━━━━━━━━━━
+برای بازی مجدد /restart بزن.";
 }
